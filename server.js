@@ -1,85 +1,101 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const axios = require('axios');
 const cors = require('cors');
-const axios = require('axios'); // Using Axios for HTTP requests
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-let paymentID;
+// Replace these with your actual bKash credentials
+const username = '01619754538';
+const password = '-2E8SmJIB{t';
+const app_key = 'Pc0yKAFRbzf6N3yk9msFYs8Ttc';
+const app_secret = 'LNHBzWWQIidD4uLzxvSRNHFNFFUrIeCTptabBuNIPtAIfDKVEbK0c';
 
-// Endpoint to get access token
-app.post('/get-token', async (req, res) => {
-    const data = {
-        username: '01619754538', // Your live username
-        password: '-2E8SmJ1B{t', // Your live password
-    };
-
+// Grant Token Endpoint
+app.post('/grant-token', async (req, res) => {
     try {
-        const response = await axios.post('https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant', data, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-App-Key': 'Pc0yKAFRbzf6N3yk9msFYs8Ttc', // Your live App Key
+        const response = await axios.post(
+            'https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant',
+            {
+                app_key: app_key,
+                app_secret: app_secret,
+                username: username,
+                password: password,
             },
-        });
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+            }
+        );
 
         res.json(response.data);
     } catch (error) {
-        console.error('Error getting access token:', error.response.data);
-        res.status(500).json({ message: 'Error getting access token', error: error.response.data });
+        console.error('Error granting token:', error.response?.data || error.message);
+        res.status(500).json({ message: 'Failed to grant token' });
     }
 });
 
-// Endpoint to create a payment
+// Create Payment Endpoint
 app.post('/create-payment', async (req, res) => {
-    const { amount, intent, currency, invoiceNumber } = req.body;
-    const accessToken = req.headers.authorization.split(' ')[1]; // Assuming you're sending Bearer token in headers
-
-    const data = {
-        amount: amount || '500',
-        currency: currency || 'BDT',
-        intent: intent || 'sale',
-        merchantInvoiceNumber: invoiceNumber || 'Inv0124',
-    };
+    const { id_token } = req.body;
 
     try {
-        const response = await axios.post('https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/create', data, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-                'X-App-Key': 'Pc0yKAFRbzf6N3yk9msFYs8Ttc', // Your live App Key
+        const response = await axios.post(
+            'https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/create',
+            {
+                mode: '0011',
+                payerReference: '01723888888', // Replace with actual payer reference
+                callbackURL: 'https://yourdomain.com/callback', // Replace with your callback URL
+                merchantAssociationInfo: 'MI05MID54RF091234560ne', // Replace with actual info
+                amount: '500', // Replace with actual amount
+                currency: 'BDT',
+                intent: 'sale', // Change to 'authorization' if required
+                merchantInvoiceNumber: 'Inv0124', // Replace with actual invoice number
             },
-        });
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${id_token}`,
+                    'X-APP-Key': app_key,
+                },
+            }
+        );
 
-        paymentID = response.data.paymentID;
         res.json(response.data);
     } catch (error) {
-        console.error('Error creating payment:', error.response.data);
-        res.status(500).json({ message: 'Error creating payment', error: error.response.data });
+        console.error('Error creating payment:', error.response?.data || error.message);
+        res.status(500).json({ message: 'Failed to create payment' });
     }
 });
 
-// Endpoint to execute a payment
+// Execute Payment Endpoint
 app.post('/execute-payment', async (req, res) => {
-    const { paymentID } = req.body;
-    const accessToken = req.headers.authorization.split(' ')[1]; // Assuming you're sending Bearer token in headers
+    const { id_token, paymentID } = req.body;
 
     try {
-        const response = await axios.post('https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/execute', { paymentID }, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-                'X-App-Key': 'Pc0yKAFRbzf6N3yk9msFYs8Ttc', // Your live App Key
-            },
-        });
+        const response = await axios.post(
+            'https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/execute',
+            { paymentID },
+            {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${id_token}`,
+                    'X-APP-Key': app_key,
+                },
+            }
+        );
 
         res.json(response.data);
     } catch (error) {
-        console.error('Error executing payment:', error.response.data);
-        res.status(500).json({ message: 'Error executing payment', error: error.response.data });
+        console.error('Error executing payment:', error.response?.data || error.message);
+        res.status(500).json({ message: 'Failed to execute payment' });
     }
 });
 
