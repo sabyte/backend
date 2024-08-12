@@ -27,7 +27,7 @@ app.post('/grant-token', async (req, res) => {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'username': 'username',
-                'password': 'password',
+                'password': 'password'
             },
         });
 
