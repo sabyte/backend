@@ -11,18 +11,16 @@ app.use(bodyParser.json());
 
 // Grant Token Route
 app.post('/grant-token', async (req, res) => {
-    const { app_key, app_secret, username, password } = req.body;
-
     try {
         const response = await axios.post('https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant', {
             app_key: 'Pc0yKAFRbzf6N3yk9msFYs8Ttc',
-            app_secret: 'LNHBzWWQliD4uLxzvSRNHFNFFUrleCTptabBuNIPtA1fDKVEbK0d'
+            app_secret: 'LNHBzWWQliD4uLzxvSRNHFNFFUrleCTptabBuNIPtAIfDKVEbK0c'
         }, {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'username': '01619754538',
-                'password': '-2E8SmJ1B{t'
+                'password': '-2E8SmJIB{t'
             },
         });
 
