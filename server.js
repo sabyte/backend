@@ -9,6 +9,11 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // Enable CORS for all routes
 app.use(bodyParser.json());
 
+// Root Route
+app.get('/', (req, res) => {
+    res.send('Backend is running!');
+});
+
 // Grant Token Route
 app.post('/grant-token', async (req, res) => {
     try {
