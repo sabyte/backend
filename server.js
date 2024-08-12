@@ -35,18 +35,9 @@ app.post('/grant-token', async (req, res) => {
 
 // Create Payment Route
 app.post('/create-payment', async (req, res) => {
-    const { id_token, app_key, payerReference, callbackURL, merchantAssociationInfo, amount, currency, intent, merchantInvoiceNumber } = req.body;
-
     try {
         const response = await axios.post('https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/create', {
-            mode: '0011',
-            payerReference,
-            callbackURL,
-            merchantAssociationInfo,
-            amount,
-            currency,
-            intent,
-            merchantInvoiceNumber
+            // Request data here
         }, {
             headers: {
                 'Content-Type': 'application/json',
@@ -55,6 +46,14 @@ app.post('/create-payment', async (req, res) => {
                 'X-App-Key': app_key
             }
         });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        res.status(500).json({ message: 'Error creating payment', error: error.response ? error.response.data : error.message });
+    }
+});
+
 
         res.json(response.data);
     } catch (error) {
